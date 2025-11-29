@@ -1,0 +1,62 @@
+groups:
+  - name: host.windows.rules
+    rules:
+      # --- CPU usage %
+      - alert: HighCPUUsage
+        expr: |
+          100 * (1 - (
+            sum by (instance) (irate(windows_cpu_time_total{mode="idle"}[5m]))
+            /
+            sum by (instance) (irate(windows_cpu_time_total[5m]))
+          )) > 80
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage > 80% for more than 2 minutes."
+
+      # --- (Optional) per-core overload fallback
+      - alert: HighCPUUsageFallback
+        expr: |
+          100 * (
+            sum by (instance) (irate(windows_cpu_time_total{mode!~"idle"}[5m]))
+            /
+            sum by (instance) (irate(windows_cpu_time_total[5m]))
+          ) > 80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage (fallback) on {{ $labels.instance }}"
+          description: "Non-idle CPU > 80% for more than 2 minutes."
+
+      # --- Memory availability (%)
+      - alert: LowAvailableMemory
+        expr: (windows_memory_available_bytes / windows_memory_total_bytes) * 100 < 15
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low available memory on {{ $labels.instance }}"
+          description: "Available memory < 15%."
+
+      # --- Disk usage (logical disks)
+      - alert: HighDiskUsage
+        expr: 100 * ((windows_logical_disk_size_bytes - windows_logical_disk_free_bytes) / windows_logical_disk_size_bytes) > 85
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage > 85%."
+
+      # --- Exporter down (Prometheus 'up' metric)
+      - alert: WindowsExporterDown
+        expr: up{job="windows"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Windows exporter down for {{ $labels.instance }}"
+          description: "windows_exporter at {{ $labels.instance }} is not reachable."
