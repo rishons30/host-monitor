@@ -1,130 +1,35 @@
 🚀 Host Monitor Pro
 
-A lightweight, production-style observability stack for Windows host metrics & container logs.
+A lightweight, production-ready observability stack for Windows host metrics and Docker container logs using:
 
-<p align="center"> <b>Prometheus • Grafana • Alertmanager • Loki • Promtail • Windows Exporter</b> </p>
+Prometheus • Grafana • Alertmanager • Loki • Promtail • Windows Exporter
+
 📸 Dashboard Preview
-<p align="center"> <img src="./images/dashboard.png" alt="Grafana Dashboard Screenshot" width="100%"> </p>
-📚 Table of Contents
-
-Overview
-
-Features
-
-Architecture
-
-Folder Structure
-
-Requirements
-
-Setup & Usage
-
-Grafana Configuration
-
-Prometheus Queries
-
-Alerts
-
-Logs
-
-AWS Deployment
-
-Completed Features
-
+<p align="center"> <img src="./images/dashboard.png" width="100%"> </p>
 🔍 Overview
 
-Host Monitor Pro provides a complete observability stack including:
+Host Monitor Pro provides:
 
-Windows OS host metrics via windows_exporter
+Windows host metrics (CPU, RAM, Disk) via windows_exporter
 
 Container logs via Promtail → Loki
 
-Alerting using Prometheus → Alertmanager
+Alerts with Prometheus → Alertmanager
 
-Visualization through Grafana
-
-Runs seamlessly on local Windows systems and AWS EC2 Ubuntu.
-
-🚀 Features
-✅ 1. Metrics Monitoring (Prometheus)
-
-CPU usage
-
-Memory usage
-
-Disk utilization
-
-Exporter health
-
-Configurable alerting rules
-
-🎨 2. Dashboards (Grafana)
-
-Prebuilt Host Monitoring Dashboard
-
-CPU / Memory / Disk usage graphs
-
-Exporter health
-
-Logs panel integrated with Loki
-
-Alert visualization
-
-📄 3. Log Aggregation (Loki + Promtail)
-
-Promtail scrapes Docker logs
-
-Loki stores logs efficiently
-
-Grafana Explore supports:
-
-full-text search
-
-filtering
-
-label queries
-
-🔔 4. Alerts (Alertmanager)
-
-High CPU
-
-Low memory
-
-High disk usage
-
-Exporter down
-
-Slack / Email / Webhook routing
-
-☁️ 5. Cloud Ready
-
-Works on AWS EC2 (t2.micro/t3.micro)
+Dashboards in Grafana
 
 One-command deployment using Docker Compose
 
-Supports SSH tunnels for secure access
+Works on Windows and AWS EC2 Ubuntu
 
 🏗️ Architecture
-+----------------------+
-|     Windows Host     |
-|  windows_exporter    |
-+----------+-----------+
-           |
-           v
-+----------------------+         +----------------+
-|     Prometheus       |  --->  |  Alertmanager  |
-+----------+-----------+         +----------------+
-           |
-           v
-+----------------------+
-|       Grafana        |
-+----------+-----------+
-           |
-           v
-+----------------------+
-| Loki <--- Promtail   |
-| (Logs Storage)       |
-+----------------------+
+Windows (windows_exporter)
+        ↓
+Prometheus → Alertmanager
+        ↓
+Grafana
+        ↓
+Loki ← Promtail (Docker logs)
 
 📂 Folder Structure
 HOST-MONITORPRO/
@@ -139,91 +44,67 @@ HOST-MONITORPRO/
  ├── loki-wal/
  └── README.md
 
-🔧 Requirements
-🖥️ Windows (Local)
+🧰 Requirements
+Windows
 
 Docker Desktop
 
 windows_exporter installed
 
-☁️ Ubuntu EC2 (Cloud)
+Ubuntu (EC2)
 
-Docker & Docker Compose
+Docker & Docker Compose installed
 
-Open ports:
+Open ports: 3000 (Grafana), 9090 (Prometheus), 9093, 3100
 
-22 (SSH)
-
-3000 (Grafana)
-
-9090 (Prometheus)
-
-9093 (Alertmanager)
-
-3100 (Loki)
-
-🐳 Setup & Usage
-Start the stack
+🚀 Setup
+Start
 sudo docker compose up -d
 
-Check running containers
-sudo docker compose ps
-
-Stop everything
+Stop
 sudo docker compose down
 
-📊 Grafana Configuration
-Default Login
+Check
+sudo docker compose ps
 
-URL: http://localhost:3000
+📊 Grafana Setup
 
-Username: admin
+Login: http://localhost:3000
 
-Password: admin
+admin / admin
 
-Add Data Sources
+Add datasources:
 
-Prometheus
+Prometheus → http://prometheus:9090
 
-http://prometheus:9090
+Loki → http://loki:3100
 
+Import dashboard.json
 
-Loki
+📈 Useful PromQL
 
-http://loki:3100
-
-Import Dashboard
-
-Navigate: Dashboards → Import
-
-Upload: dashboard.json
-
-Choose Prometheus datasource
-
-📈 Key Prometheus Queries
 CPU Usage
-100 * (1 - (
-  sum by (instance) (irate(windows_cpu_time_total{mode="idle"}[5m])) /
-  sum by (instance) (irate(windows_cpu_time_total[5m]))
-))
+
+100 * (1 - sum by(instance)(irate(windows_cpu_time_total{mode="idle"}[5m])) /
+          sum by(instance)(irate(windows_cpu_time_total[5m])))
+
 
 Memory Usage
+
 100 * (1 - (windows_memory_available_bytes / windows_memory_physical_total_bytes))
 
+
 Disk Usage
-100 * avg by (instance, volume) (
-  (windows_logical_disk_size_bytes - windows_logical_disk_free_bytes) /
-  windows_logical_disk_size_bytes
-)
 
-Exporter Health
-up{job="windows"}
+100 *
+  avg by(instance, volume)(
+    (windows_logical_disk_size_bytes - windows_logical_disk_free_bytes)
+    / windows_logical_disk_size_bytes
+  )
 
-🔥 Alerts (Prometheus → Alertmanager)
+🔔 Alerts
 
-Defined in: prometheus_rules.yml
-
-Includes:
+Defined in prometheus_rules.yml:
 
 High CPU
 
@@ -233,22 +114,18 @@ High disk usage
 
 Exporter down
 
-Reload alert rules:
+Reload rules:
 
 curl -X POST http://localhost:9090/-/reload
 
-
-View active alerts:
-
-http://localhost:9090/alerts
-
 📜 Logs (Loki + Promtail)
-Check Promtail output
+
+View Promtail logs:
+
 sudo docker compose logs promtail --tail 50
 
-Loki Queries
 
-All logs:
+Query logs:
 
 {job="docker_logs"}
 
@@ -257,34 +134,22 @@ Errors only:
 
 {job="docker_logs"} |= "error"
 
-☁️ Deploying on AWS EC2
-1. SSH into instance
-ssh -i hostkeypair.pem ubuntu@EC2_PUBLIC_IP
-
-2. Upload project
-scp -i "hostkeypair.pem" -r F:\host-monitorpro\* ubuntu@EC2_PUBLIC_IP:/home/ubuntu/host-monitorpro/
-
-3. Start services
-cd ~/host-monitorpro
+☁️ Deploy on AWS EC2
+ssh -i key.pem ubuntu@EC2_IP
+scp -i key.pem -r ./host-monitorpro ubuntu@EC2_IP:/home/ubuntu/
+cd host-monitorpro
 sudo docker compose up -d
 
-4. Enable SSH tunnel (recommended)
-ssh -i "hostkeypair.pem" \
--L 3000:localhost:3000 \
--L 9090:localhost:9090 \
-ubuntu@EC2_PUBLIC_IP
 
-⭐ Status / Completed Features
+Tunnel (recommended):
 
-✔ CPU monitoring
-✔ Memory monitoring
-✔ Disk monitoring
-✔ Exporter health
-✔ Prometheus rules
-✔ Alertmanager routing
-✔ Loki log storage
-✔ Promtail container logs
+ssh -i key.pem -L 3000:localhost:3000 ubuntu@EC2_IP
+
+✅ Completed
+
+✔ CPU / Memory / Disk metrics
+✔ Alerts
+✔ Log aggregation
+✔ Docker Compose deployment
 ✔ Grafana dashboards
-✔ EC2 deployment
-✔ SSH tunnels
-✔ Production-ready Docker Compose
+✔ EC2 support
