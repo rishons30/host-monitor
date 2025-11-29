@@ -5,8 +5,6 @@ A lightweight, production-style observability stack for Windows host metrics & c
 <p align="center"> <b>Prometheus • Grafana • Alertmanager • Loki • Promtail • Windows Exporter</b> </p>
 📸 Dashboard Preview
 <p align="center"> <img src="./images/dashboard.png" alt="Grafana Dashboard Screenshot" width="100%"> </p>
-
-
 📚 Table of Contents
 
 Overview
@@ -29,23 +27,23 @@ Alerts
 
 Logs
 
-AWS Deployment Guide
+AWS Deployment
 
 Completed Features
 
 🔍 Overview
 
-Host Monitor Pro is a full observability stack built for:
+Host Monitor Pro provides a complete observability stack including:
 
 Windows OS host metrics via windows_exporter
 
 Container logs via Promtail → Loki
 
-Alerting via Prometheus → Alertmanager
+Alerting using Prometheus → Alertmanager
 
-Visualization via Grafana
+Visualization through Grafana
 
-Works seamlessly on local Windows and AWS EC2 Ubuntu.
+Runs seamlessly on local Windows systems and AWS EC2 Ubuntu.
 
 🚀 Features
 ✅ 1. Metrics Monitoring (Prometheus)
@@ -58,29 +56,33 @@ Disk utilization
 
 Exporter health
 
-Alert rules
+Configurable alerting rules
 
 🎨 2. Dashboards (Grafana)
 
-Prebuilt “Host Monitoring” dashboard
+Prebuilt Host Monitoring Dashboard
 
-CPU / Memory / Disk graphs
+CPU / Memory / Disk usage graphs
 
-Exporter status
+Exporter health
 
-Logs panel from Loki
+Logs panel integrated with Loki
 
-Alerts overview
+Alert visualization
 
-📄 3. Log Aggregation (Promtail + Loki)
+📄 3. Log Aggregation (Loki + Promtail)
 
-Scrapes Docker logs
+Promtail scrapes Docker logs
 
-Stores logs in Loki
+Loki stores logs efficiently
 
-Query logs in Grafana Explore
+Grafana Explore supports:
 
-Full-text search, labels, filters
+full-text search
+
+filtering
+
+label queries
 
 🔔 4. Alerts (Alertmanager)
 
@@ -92,15 +94,15 @@ High disk usage
 
 Exporter down
 
-Email/Slack/Webhook routing
+Slack / Email / Webhook routing
 
 ☁️ 5. Cloud Ready
 
-Works on AWS EC2 (t2.micro / t3.micro)
+Works on AWS EC2 (t2.micro/t3.micro)
 
-Production Docker Compose
+One-command deployment using Docker Compose
 
-SSH tunneling support
+Supports SSH tunnels for secure access
 
 🏗️ Architecture
 +----------------------+
@@ -138,32 +140,36 @@ HOST-MONITORPRO/
  └── README.md
 
 🔧 Requirements
-🖥️ Windows
+🖥️ Windows (Local)
 
 Docker Desktop
 
-windows_exporter
+windows_exporter installed
 
-☁️ EC2 Ubuntu
+☁️ Ubuntu EC2 (Cloud)
 
-Docker + Docker Compose
+Docker & Docker Compose
 
-Open ports: 22, 3000, 9090, 9093, 3100
+Open ports:
+
+22 (SSH)
+
+3000 (Grafana)
+
+9090 (Prometheus)
+
+9093 (Alertmanager)
+
+3100 (Loki)
 
 🐳 Setup & Usage
-
-Start the stack:
-
+Start the stack
 sudo docker compose up -d
 
-
-Check running containers:
-
+Check running containers
 sudo docker compose ps
 
-
-Stop:
-
+Stop everything
 sudo docker compose down
 
 📊 Grafana Configuration
@@ -171,24 +177,33 @@ Default Login
 
 URL: http://localhost:3000
 
-User: admin
+Username: admin
 
-Pass: admin
+Password: admin
 
 Add Data Sources
 
-Prometheus: http://prometheus:9090
-Loki: http://loki:3100
+Prometheus
+
+http://prometheus:9090
+
+
+Loki
+
+http://loki:3100
 
 Import Dashboard
 
-Dashboards → Import → Upload dashboard.json
+Navigate: Dashboards → Import
+
+Upload: dashboard.json
+
+Choose Prometheus datasource
 
 📈 Key Prometheus Queries
 CPU Usage
 100 * (1 - (
-  sum by (instance) (irate(windows_cpu_time_total{mode="idle"}[5m]))
-  /
+  sum by (instance) (irate(windows_cpu_time_total{mode="idle"}[5m])) /
   sum by (instance) (irate(windows_cpu_time_total[5m]))
 ))
 
@@ -206,33 +221,34 @@ up{job="windows"}
 
 🔥 Alerts (Prometheus → Alertmanager)
 
-Located in prometheus_rules.yml:
+Defined in: prometheus_rules.yml
+
+Includes:
 
 High CPU
 
 Low memory
 
-High disk
+High disk usage
 
 Exporter down
 
-Reload:
+Reload alert rules:
 
 curl -X POST http://localhost:9090/-/reload
 
 
-Alerts page:
+View active alerts:
 
 http://localhost:9090/alerts
 
 📜 Logs (Loki + Promtail)
-
-Check Promtail logs:
-
+Check Promtail output
 sudo docker compose logs promtail --tail 50
 
+Loki Queries
 
-Loki queries:
+All logs:
 
 {job="docker_logs"}
 
@@ -242,17 +258,21 @@ Errors only:
 {job="docker_logs"} |= "error"
 
 ☁️ Deploying on AWS EC2
-1. SSH
+1. SSH into instance
 ssh -i hostkeypair.pem ubuntu@EC2_PUBLIC_IP
 
 2. Upload project
 scp -i "hostkeypair.pem" -r F:\host-monitorpro\* ubuntu@EC2_PUBLIC_IP:/home/ubuntu/host-monitorpro/
 
-3. Start
+3. Start services
+cd ~/host-monitorpro
 sudo docker compose up -d
 
-4. SSH Tunnel
-ssh -i "hostkeypair.pem" -L 3000:localhost:3000 -L 9090:localhost:9090 ubuntu@EC2_PUBLIC_IP
+4. Enable SSH tunnel (recommended)
+ssh -i "hostkeypair.pem" \
+-L 3000:localhost:3000 \
+-L 9090:localhost:9090 \
+ubuntu@EC2_PUBLIC_IP
 
 ⭐ Status / Completed Features
 
