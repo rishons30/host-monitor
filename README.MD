@@ -1,4 +1,4 @@
-🚀 Host Monitor Pro
+🚀 **Host Monitor Pro**
 
 A lightweight, production-ready observability stack for Windows host metrics and Docker container logs, powered by:
 
