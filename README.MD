@@ -1,6 +1,6 @@
 🚀 Host Monitor Pro
 
-A lightweight, production-ready observability stack for Windows host metrics and Docker container logs using:
+A lightweight, production-ready observability stack for Windows host metrics and Docker container logs, powered by:
 
 Prometheus • Grafana • Alertmanager • Loki • Promtail • Windows Exporter
 
@@ -14,9 +14,9 @@ Windows host metrics (CPU, RAM, Disk) via windows_exporter
 
 Container logs via Promtail → Loki
 
-Alerts with Prometheus → Alertmanager
+Alerting via Prometheus → Alertmanager
 
-Dashboards in Grafana
+Dashboards using Grafana
 
 One-command deployment using Docker Compose
 
