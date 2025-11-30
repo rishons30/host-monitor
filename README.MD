@@ -1,37 +1,86 @@
-🚀 **Host Monitor Pro**
+**Host Monitor Pro**
 
-A lightweight, production-ready observability stack for Windows host metrics and Docker container logs, powered by:
+A lightweight, production-ready observability stack for Windows host metrics and Docker container logs, using:
 
-Prometheus • Grafana • Alertmanager • Loki • Promtail • Windows Exporter
+Prometheus, Grafana, Alertmanager, Loki, Promtail, Windows Exporter
 
-📸 Dashboard Preview
-<p align="center"> <img src="./images/dashboard.png" width="100%"> </p>
-🔍 Overview
+Dashboard Preview
+
+Overview
 
 Host Monitor Pro provides:
 
 Windows host metrics (CPU, RAM, Disk) via windows_exporter
 
-Container logs via Promtail → Loki
+Docker container logs via Promtail → Loki
 
 Alerting via Prometheus → Alertmanager
 
-Dashboards using Grafana
+Dashboards with Grafana
 
 One-command deployment using Docker Compose
 
 Works on Windows and AWS EC2 Ubuntu
 
-🏗️ Architecture
-Windows (windows_exporter)
-        ↓
-Prometheus → Alertmanager
-        ↓
-Grafana
-        ↓
-Loki ← Promtail (Docker logs)
+Features
+Metrics Monitoring (Prometheus)
 
-📂 Folder Structure
+CPU usage
+
+Memory usage
+
+Disk usage
+
+Exporter health
+
+Custom alert rules
+
+Dashboards (Grafana)
+
+Host monitoring dashboard
+
+CPU / Memory / Disk graphs
+
+Alerts panel
+
+Logs panel
+
+Log Aggregation (Loki + Promtail)
+
+Collects Docker container logs
+
+Full-text search
+
+Label-based filtering
+
+Alerts (Alertmanager)
+
+High CPU
+
+Low memory
+
+High disk usage
+
+Exporter down
+
+Cloud Ready
+
+Works on AWS EC2
+
+SSH tunnel support
+
+Same config works on Windows & Linux
+
+Architecture
+Windows Host (windows_exporter)
+             ↓
+      Prometheus → Alertmanager
+             ↓
+           Grafana
+             ↓
+       Loki ← Promtail
+
+Folder Structure
 HOST-MONITORPRO/
  ├── docker-compose.yml
  ├── prometheus.yml
@@ -44,67 +93,87 @@ HOST-MONITORPRO/
  ├── loki-wal/
  └── README.md
 
-🧰 Requirements
+Requirements
 Windows
 
 Docker Desktop
 
 windows_exporter installed
 
-Ubuntu (EC2)
+Ubuntu (AWS EC2)
 
-Docker & Docker Compose installed
+Docker
 
-Open ports: 3000 (Grafana), 9090 (Prometheus), 9093, 3100
+Docker Compose
 
-🚀 Setup
+Open ports:
+
+3000 (Grafana)
+
+9090 (Prometheus)
+
+9093 (Alertmanager)
+
+3100 (Loki)
+
+Setup
 Start
 sudo docker compose up -d
 
 Stop
 sudo docker compose down
 
-Check
+Check Running Containers
 sudo docker compose ps
 
-📊 Grafana Setup
+Grafana Setup
+Login
 
-Login: http://localhost:3000
+URL: http://localhost:3000
 
-admin / admin
+Username: admin
 
-Add datasources:
+Password: admin
 
-Prometheus → http://prometheus:9090
+Add Data Sources
 
-Loki → http://loki:3100
+Prometheus
 
-Import dashboard.json
+http://prometheus:9090
 
-📈 Useful PromQL
 
+Loki
+
+http://loki:3100
+
+Import Dashboard
+
+Go to Dashboards → Import
+
+Upload dashboard.json
+
+Select Prometheus datasource
+
+Prometheus Queries
 CPU Usage
-
 100 * (1 - sum by(instance)(irate(windows_cpu_time_total{mode="idle"}[5m])) /
           sum by(instance)(irate(windows_cpu_time_total[5m])))
 
-
 Memory Usage
-
 100 * (1 - (windows_memory_available_bytes / windows_memory_physical_total_bytes))
 
-
 Disk Usage
+100 * avg by(instance, volume)(
+  (windows_logical_disk_size_bytes - windows_logical_disk_free_bytes)
+  / windows_logical_disk_size_bytes
+)
 
-100 *
-  avg by(instance, volume)(
-    (windows_logical_disk_size_bytes - windows_logical_disk_free_bytes)
-    / windows_logical_disk_size_bytes
-  )
+Exporter Health
+up{job="windows"}
 
-🔔 Alerts
+Alerts
 
-Defined in prometheus_rules.yml:
+Alerts are defined in prometheus_rules.yml:
 
 High CPU
 
@@ -114,13 +183,13 @@ High disk usage
 
 Exporter down
 
-Reload rules:
+Reload alert rules:
 
 curl -X POST http://localhost:9090/-/reload
 
-📜 Logs (Loki + Promtail)
+Logs (Loki + Promtail)
 
-View Promtail logs:
+Check Promtail logs:
 
 sudo docker compose logs promtail --tail 50
 
@@ -134,22 +203,27 @@ Errors only:
 
 {job="docker_logs"} |= "error"
 
-☁️ Deploy on AWS EC2
-ssh -i key.pem ubuntu@EC2_IP
-scp -i key.pem -r ./host-monitorpro ubuntu@EC2_IP:/home/ubuntu/
-cd host-monitorpro
+AWS EC2 Deployment
+SSH into EC2
+ssh -i key.pem ubuntu@EC2_PUBLIC_IP
+
+Upload Project
+scp -i key.pem -r ./host-monitorpro ubuntu@EC2_PUBLIC_IP:/home/ubuntu/
+
+Start Services
+cd ~/host-monitorpro
 sudo docker compose up -d
 
+Completed Features
 
-Tunnel (recommended):
+CPU / Memory / Disk monitoring
 
-ssh -i key.pem -L 3000:localhost:3000 ubuntu@EC2_IP
+Log aggregation
 
-✅ Completed
+Alerts
 
-✔ CPU / Memory / Disk metrics
-✔ Alerts
-✔ Log aggregation
-✔ Docker Compose deployment
-✔ Grafana dashboards
-✔ EC2 support
+Grafana dashboards
+
+EC2 deployment
+
+One-command startup
